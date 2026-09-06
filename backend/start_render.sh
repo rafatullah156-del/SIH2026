@@ -1,13 +1,12 @@
 #!/bin/sh
 set -e
 
-# If CELERY_* not set, fall back to REDIS_URL
+# If CELERY_* empty/unset, use REDIS_URL
 : "${CELERY_BROKER_URL:=${REDIS_URL}}"
 : "${CELERY_RESULT_BACKEND:=${REDIS_URL}}"
 
-# fail fast if still empty
 if [ -z "$CELERY_BROKER_URL" ]; then
-  echo "ERROR: CELERY_BROKER_URL/REDIS_URL is empty"
+  echo "ERROR: REDIS_URL/CELERY_BROKER_URL is empty"
   exit 1
 fi
 
