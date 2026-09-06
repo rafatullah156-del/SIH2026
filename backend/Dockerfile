@@ -22,3 +22,6 @@ RUN python -c "from rapidocr_onnxruntime import RapidOCR; RapidOCR(); print('OCR
 COPY app ./app
 
 EXPOSE 8000
+# Render start script
+COPY start_render.sh ./start_render.sh
+RUN chmod +x /code/start_render.sh
