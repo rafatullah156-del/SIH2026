@@ -1,0 +1,28 @@
+﻿.env
+.env.*
+**/.env
+**/.env.*
+
+node_modules/
+**/node_modules/
+.expo/
+**/.expo/
+dist/
+build/
+
+.venv/
+**/.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+# secrets
+**/.env
+
+# python
+**/.venv/
+
+# node
+**/node_modules/
+**/dist/
+**/.expo/

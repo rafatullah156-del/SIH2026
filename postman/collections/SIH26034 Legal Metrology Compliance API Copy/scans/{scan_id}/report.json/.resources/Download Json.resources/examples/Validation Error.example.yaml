@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id/report.json"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    scan_id: fdba4657-3497-c3e4-8f86-118bde1caff3
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "detail": [
+          {
+            "loc": [
+              "string",
+              "string"
+            ],
+            "msg": "string",
+            "type": "string"
+          },
+          {
+            "loc": [
+              "string",
+              7875
+            ],
+            "msg": "string",
+            "type": "string"
+          }
+        ]
+      }
+order: 2000

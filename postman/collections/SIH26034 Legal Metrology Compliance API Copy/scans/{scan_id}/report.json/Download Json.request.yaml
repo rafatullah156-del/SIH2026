@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/scans/:scan_id/report.json"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  scan_id: fdba4657-3497-c3e4-8f86-118bde1caff3
+settings: {}
+examples: ./.resources/Download Json.resources/examples
+order: 1000

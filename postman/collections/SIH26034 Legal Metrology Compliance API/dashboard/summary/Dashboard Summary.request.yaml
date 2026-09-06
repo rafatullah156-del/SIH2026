@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/dashboard/summary?from_date=string&to_date=string"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  from_date: string
+  to_date: string
+settings: {}
+examples: ./.resources/Dashboard Summary.resources/examples
+order: 1000

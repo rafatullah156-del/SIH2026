@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/scans?skip=0&limit=20"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  skip: "0"
+  limit: "20"
+settings: {}
+examples: ./.resources/List Scans.resources/examples
+order: 3000

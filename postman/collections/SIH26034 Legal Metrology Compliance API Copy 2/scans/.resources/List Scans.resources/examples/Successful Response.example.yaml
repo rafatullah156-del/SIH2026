@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans?skip=0&limit=20"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    skip: "0"
+    limit: "20"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "scanId": "f2732a23-ab3d-652d-a169-69634afa8618",
+          "status": "string",
+          "createdAt": "string",
+          "score": 3980.176790454546
+        },
+        {
+          "scanId": "86d00226-33da-f2b4-f851-04e9c902fcc1",
+          "status": "string",
+          "createdAt": "string",
+          "score": 4680.098796910485
+        }
+      ]
+order: 1000

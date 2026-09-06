@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/scans/:scan_id/images"
+method: POST
+headers:
+  Content-Type: multipart/form-data
+  Accept: application/json
+pathVariables:
+  scan_id: fdba4657-3497-c3e4-8f86-118bde1caff3
+body:
+  type: formdata
+  content:
+    - type: text
+      key: panelType
+      value: front
+    - type: file
+      key: file
+      src: []
+settings: {}
+examples: ./.resources/Upload Image.resources/examples
+order: 2000

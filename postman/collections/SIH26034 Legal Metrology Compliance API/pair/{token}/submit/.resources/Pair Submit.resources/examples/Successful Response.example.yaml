@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pair/:token/submit"
+  method: POST
+  headers:
+    Content-Type: multipart/form-data
+    Accept: application/json
+  pathVariables:
+    token: string
+  body:
+    type: formdata
+    content:
+      - type: file
+        key: front
+        src: []
+      - type: file
+        key: back
+        src: []
+      - type: file
+        key: calibration
+        src: []
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "ok": false,
+        "scanId": "string",
+        "status": "string"
+      }
+order: 1000

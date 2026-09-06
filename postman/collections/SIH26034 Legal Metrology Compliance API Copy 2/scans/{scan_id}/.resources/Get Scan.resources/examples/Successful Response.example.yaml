@@ -1,0 +1,27 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    scan_id: 4a2f15e4-45f3-2c89-ea98-8ea77a3b9ff3
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "scanId": "f56ff82a-7f0f-788e-546b-bc3b8073fb42",
+        "status": "string",
+        "score": 2174.1328508445235,
+        "report": {
+          "pdfUrl": "string",
+          "jsonUrl": "string"
+        },
+        "error": "string"
+      }
+order: 1000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/scans"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Create Scan.resources/examples
+order: 2000

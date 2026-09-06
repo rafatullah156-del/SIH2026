@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id/images"
+  method: POST
+  headers:
+    Content-Type: multipart/form-data
+    Accept: application/json
+  pathVariables:
+    scan_id: 4a2f15e4-45f3-2c89-ea98-8ea77a3b9ff3
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: panelType
+        value: side
+      - type: file
+        key: file
+        src: []
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "imageId": "2819f5cf-b79f-b59f-f9ca-8eb5f524e5b3"
+      }
+order: 1000

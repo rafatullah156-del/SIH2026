@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id/images"
+  method: POST
+  headers:
+    Content-Type: multipart/form-data
+    Accept: application/json
+  pathVariables:
+    scan_id: fdba4657-3497-c3e4-8f86-118bde1caff3
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: panelType
+        value: front
+      - type: file
+        key: file
+        src: []
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "detail": [
+          {
+            "loc": [
+              "string",
+              "string"
+            ],
+            "msg": "string",
+            "type": "string"
+          },
+          {
+            "loc": [
+              "string",
+              7875
+            ],
+            "msg": "string",
+            "type": "string"
+          }
+        ]
+      }
+order: 2000

@@ -1,0 +1,17 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id/report.pdf"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    scan_id: 56b5b38d-3f0a-f71b-cb0e-65fed7db628a
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

@@ -1,0 +1,1053 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "SIH26034 Legal Metrology Compliance API",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health",
+                "operationId": "health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans": {
+            "post": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Create Scan",
+                "operationId": "create_scan_scans_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScanCreateResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "List Scans",
+                "operationId": "list_scans_scans_get",
+                "parameters": [
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ScanListItem"
+                                    },
+                                    "title": "Response List Scans Scans Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/images": {
+            "post": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Upload Image",
+                "operationId": "upload_image_scans__scan_id__images_post",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_upload_image_scans__scan_id__images_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageUploadResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/submit": {
+            "post": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Submit Scan",
+                "operationId": "submit_scan_scans__scan_id__submit_post",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmitResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}": {
+            "get": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Get Scan",
+                "operationId": "get_scan_scans__scan_id__get",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScanOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/images/{image_id}": {
+            "get": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "View Image",
+                "operationId": "view_image_scans__scan_id__images__image_id__get",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    },
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Image Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/report.pdf": {
+            "get": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Download Pdf",
+                "operationId": "download_pdf_scans__scan_id__report_pdf_get",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/report.json": {
+            "get": {
+                "tags": [
+                    "scans"
+                ],
+                "summary": "Download Json",
+                "operationId": "download_json_scans__scan_id__report_json_get",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scan_id}/pair-token": {
+            "post": {
+                "tags": [
+                    "pairing"
+                ],
+                "summary": "Create Pair Token",
+                "operationId": "create_pair_token_scans__scan_id__pair_token_post",
+                "parameters": [
+                    {
+                        "name": "scan_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Scan Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PairTokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pair/{token}/submit": {
+            "post": {
+                "tags": [
+                    "pairing"
+                ],
+                "summary": "Pair Submit",
+                "operationId": "pair_submit_pair__token__submit_post",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Token"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_pair_submit_pair__token__submit_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PairSubmitResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/summary": {
+            "get": {
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Dashboard Summary",
+                "operationId": "dashboard_summary_dashboard_summary_get",
+                "parameters": [
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "From Date"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "To Date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Body_pair_submit_pair__token__submit_post": {
+                "properties": {
+                    "front": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "Front"
+                    },
+                    "back": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "Back"
+                    },
+                    "calibration": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "binary"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Calibration"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "front",
+                    "back"
+                ],
+                "title": "Body_pair_submit_pair__token__submit_post"
+            },
+            "Body_upload_image_scans__scan_id__images_post": {
+                "properties": {
+                    "panelType": {
+                        "$ref": "#/components/schemas/PanelType"
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "panelType",
+                    "file"
+                ],
+                "title": "Body_upload_image_scans__scan_id__images_post"
+            },
+            "FieldOut": {
+                "properties": {
+                    "fieldName": {
+                        "type": "string",
+                        "title": "Fieldname"
+                    },
+                    "fieldValue": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Fieldvalue"
+                    },
+                    "confidence": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Confidence"
+                    },
+                    "panelType": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Paneltype"
+                    },
+                    "imageId": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Imageid"
+                    },
+                    "bbox": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Bbox"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "fieldName"
+                ],
+                "title": "FieldOut"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "ImageUploadResponse": {
+                "properties": {
+                    "imageId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Imageid"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "imageId"
+                ],
+                "title": "ImageUploadResponse"
+            },
+            "PairSubmitResponse": {
+                "properties": {
+                    "ok": {
+                        "type": "boolean",
+                        "title": "Ok"
+                    },
+                    "scanId": {
+                        "type": "string",
+                        "title": "Scanid"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ok",
+                    "scanId",
+                    "status"
+                ],
+                "title": "PairSubmitResponse"
+            },
+            "PairTokenResponse": {
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "title": "Token"
+                    },
+                    "joinUrl": {
+                        "type": "string",
+                        "title": "Joinurl"
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "title": "Expiresat"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "token",
+                    "joinUrl",
+                    "expiresAt"
+                ],
+                "title": "PairTokenResponse"
+            },
+            "PanelType": {
+                "type": "string",
+                "enum": [
+                    "front",
+                    "back",
+                    "side",
+                    "calibration"
+                ],
+                "title": "PanelType"
+            },
+            "ReportOut": {
+                "properties": {
+                    "pdfUrl": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Pdfurl"
+                    },
+                    "jsonUrl": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Jsonurl"
+                    }
+                },
+                "type": "object",
+                "title": "ReportOut"
+            },
+            "ScanCreateResponse": {
+                "properties": {
+                    "scanId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Scanid"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "scanId"
+                ],
+                "title": "ScanCreateResponse"
+            },
+            "ScanImageOut": {
+                "properties": {
+                    "imageId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Imageid"
+                    },
+                    "panelType": {
+                        "type": "string",
+                        "title": "Paneltype"
+                    },
+                    "width": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Width"
+                    },
+                    "height": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Height"
+                    },
+                    "viewUrl": {
+                        "type": "string",
+                        "title": "Viewurl"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "imageId",
+                    "panelType",
+                    "viewUrl"
+                ],
+                "title": "ScanImageOut"
+            },
+            "ScanListItem": {
+                "properties": {
+                    "scanId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Scanid"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Score"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "title": "Createdat"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "scanId",
+                    "status",
+                    "createdAt"
+                ],
+                "title": "ScanListItem"
+            },
+            "ScanOut": {
+                "properties": {
+                    "scanId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Scanid"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Score"
+                    },
+                    "images": {
+                        "items": {
+                            "$ref": "#/components/schemas/ScanImageOut"
+                        },
+                        "type": "array",
+                        "title": "Images",
+                        "default": []
+                    },
+                    "fields": {
+                        "items": {
+                            "$ref": "#/components/schemas/FieldOut"
+                        },
+                        "type": "array",
+                        "title": "Fields",
+                        "default": []
+                    },
+                    "violations": {
+                        "items": {
+                            "$ref": "#/components/schemas/ViolationOut"
+                        },
+                        "type": "array",
+                        "title": "Violations",
+                        "default": []
+                    },
+                    "report": {
+                        "$ref": "#/components/schemas/ReportOut",
+                        "default": {}
+                    },
+                    "error": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Error"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "scanId",
+                    "status"
+                ],
+                "title": "ScanOut"
+            },
+            "SubmitResponse": {
+                "properties": {
+                    "ok": {
+                        "type": "boolean",
+                        "title": "Ok"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ok",
+                    "status"
+                ],
+                "title": "SubmitResponse"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "ViolationOut": {
+                "properties": {
+                    "ruleCode": {
+                        "type": "string",
+                        "title": "Rulecode"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "title": "Severity"
+                    },
+                    "field": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Field"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "panelType": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Paneltype"
+                    },
+                    "imageId": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Imageid"
+                    },
+                    "bbox": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Bbox"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ruleCode",
+                    "severity",
+                    "message"
+                ],
+                "title": "ViolationOut"
+            }
+        }
+    }
+}

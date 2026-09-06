@@ -1,0 +1,17 @@
+# Use this workspace to collaborate
+workspace:
+  id: de8dfbb3-7fb5-4ce7-801e-4c025e974a18
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/SIH26034 Legal Metrology Compliance API: ed4885a5-dd45-48e3-97ec-c4774b5834b0
+    ../postman/collections/SIH26034 Legal Metrology Compliance API Copy: 73334152-93cc-4b55-b9ad-e8806ea48fd1
+    ../postman/collections/SIH26034 Legal Metrology Compliance API Copy 2: f970402e-f98c-443e-b103-60c733406979
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

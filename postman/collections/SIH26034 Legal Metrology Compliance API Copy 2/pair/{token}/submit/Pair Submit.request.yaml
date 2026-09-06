@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/pair/:token/submit"
+method: POST
+headers:
+  Content-Type: multipart/form-data
+  Accept: application/json
+pathVariables:
+  token: string
+body:
+  type: formdata
+  content:
+    - type: file
+      key: front
+      src: []
+    - type: file
+      key: back
+      src: []
+    - type: file
+      key: calibration
+      src: []
+settings: {}
+examples: ./.resources/Pair Submit.resources/examples
+order: 1000

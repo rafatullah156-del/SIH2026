@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/scans/:scan_id/pair-token"
+  method: POST
+  headers:
+    Accept: application/json
+  pathVariables:
+    scan_id: 4a2f15e4-45f3-2c89-ea98-8ea77a3b9ff3
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "token": "string",
+        "joinUrl": "string",
+        "expiresAt": "string"
+      }
+order: 1000

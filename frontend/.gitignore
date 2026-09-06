@@ -1,0 +1,35 @@
+# env
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# node / expo
+node_modules/
+**/node_modules/
+.expo/
+**/.expo/
+dist/
+**/dist/
+web-build/
+*.tsbuildinfo
+
+# python
+.venv/
+**/.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# misc
+*.zip
+*.log

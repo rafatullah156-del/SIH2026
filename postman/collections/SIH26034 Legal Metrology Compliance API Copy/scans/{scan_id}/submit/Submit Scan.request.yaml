@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/scans/:scan_id/submit"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  scan_id: fdba4657-3497-c3e4-8f86-118bde1caff3
+settings: {}
+examples: ./.resources/Submit Scan.resources/examples
+order: 1000
