@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -12,6 +12,7 @@ from app.models.field import ExtractedField  # noqa: F401
 from app.models.violation import Violation  # noqa: F401
 from app.models.report import Report  # noqa: F401
 from app.models.pair_token import PairToken  # noqa: F401
+from app.models.object_store import StoredObject  # noqa: F401
 
 from app.api.routes.scan import router as scan_router
 from app.api.routes.pair import router as pair_router

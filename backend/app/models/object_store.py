@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, LargeBinary, DateTime, func
+﻿from sqlalchemy import Column, String, LargeBinary, DateTime, func
 from app.models.scan import Base
 
 class StoredObject(Base):

@@ -1,8 +1,8 @@
-import secrets
+﻿import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -27,27 +27,28 @@ def get_db():
 
 
 @router.post("/scans/{scan_id}/pair-token", response_model=PairTokenResponse)
-def create_pair_token(scan_id: UUID, db: Session = Depends(get_db)):
+def create_pair_token(scan_id: UUID, request: Request, db: Session = Depends(get_db)):
     scan = db.get(Scan, scan_id)
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     plain = secrets.token_urlsafe(32)
     th = hash_token(plain)
-    expires_at = datetime.now(timezone.utc) + timedelta(
-        seconds=settings.PAIR_TOKEN_TTL_SECONDS
-    )
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=settings.PAIR_TOKEN_TTL_SECONDS)
 
     pt = PairToken(scan_id=scan_id, token_hash=th, expires_at=expires_at)
     db.add(pt)
     db.commit()
 
-    join_url = f"{settings.FRONTEND_QUICK_UPLOAD_BASE_URL}?t={plain}"
-    return PairTokenResponse(
-        token=plain,
-        joinUrl=join_url,
-        expiresAt=expires_at.isoformat(),
-    )
+    origin = request.headers.get("origin")  # Cloudflare Pages domain will be here
+    if origin and origin.startswith("http"):
+        join_url = f"{origin.rstrip('/')}/quick-upload?t={plain}"
+    elif settings.FRONTEND_QUICK_UPLOAD_BASE_URL:
+        join_url = f"{settings.FRONTEND_QUICK_UPLOAD_BASE_URL}?t={plain}"
+    else:
+        join_url = f"{str(request.base_url).rstrip('/')}/quick-upload?t={plain}"
+
+    return PairTokenResponse(token=plain, joinUrl=join_url, expiresAt=expires_at.isoformat())
 
 
 @router.post("/pair/{token}/submit", response_model=PairSubmitResponse)
@@ -79,15 +80,13 @@ def pair_submit(
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    # mark token as used immediately (atomic one-time use)
+    # mark token used immediately (one-time use)
     pt.used_at = now
     db.commit()
 
     def _put(panel: PanelType, uf: UploadFile):
         key = f"scans/{scan.id}/{panel.value}.jpg"
-        upload_fileobj(
-            uf.file, key, content_type=uf.content_type or "image/jpeg"
-        )
+        upload_fileobj(uf.file, key, content_type=uf.content_type or "image/jpeg")
         existing = (
             db.query(ScanImage)
             .filter(ScanImage.scan_id == scan.id, ScanImage.panel_type == panel)
@@ -108,5 +107,4 @@ def pair_submit(
     db.commit()
 
     process_scan.delay(str(scan.id))
-
     return PairSubmitResponse(ok=True, scanId=str(scan.id), status="queued")

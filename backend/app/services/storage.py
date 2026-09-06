@@ -1,4 +1,4 @@
-import io
+﻿import io
 import boto3
 from botocore.exceptions import ClientError
 from sqlalchemy.orm import Session
@@ -11,11 +11,13 @@ from app.models.object_store import StoredObject
 
 _initialized = False
 
+
 def _ensure_tables():
     global _initialized
     if not _initialized:
         Base.metadata.create_all(bind=engine)
         _initialized = True
+
 
 def _s3():
     return boto3.client(
@@ -25,10 +27,13 @@ def _s3():
         aws_secret_access_key=settings.S3_SECRET_KEY,
     )
 
+
 def _db() -> Session:
     return SessionLocal()
 
+
 def upload_fileobj(fileobj, object_key: str, content_type: str = "application/octet-stream") -> None:
+    # Postgres storage (default)
     if settings.STORAGE_BACKEND.lower() == "postgres":
         _ensure_tables()
         data = fileobj.read()
@@ -46,7 +51,7 @@ def upload_fileobj(fileobj, object_key: str, content_type: str = "application/oc
         finally:
             db.close()
 
-    # default: S3
+    # S3 fallback
     try:
         _s3().upload_fileobj(
             fileobj,
@@ -59,8 +64,10 @@ def upload_fileobj(fileobj, object_key: str, content_type: str = "application/oc
         logger.error(f"Upload failed for {object_key}: {e}")
         raise
 
+
 def upload_bytes(data: bytes, object_key: str, content_type: str = "application/octet-stream") -> None:
     upload_fileobj(io.BytesIO(data), object_key, content_type)
+
 
 def get_object_stream(object_key: str):
     if settings.STORAGE_BACKEND.lower() == "postgres":
@@ -80,6 +87,7 @@ def get_object_stream(object_key: str):
     except ClientError as e:
         logger.error(f"Download failed for {object_key}: {e}")
         raise
+
 
 def download_bytes(object_key: str) -> bytes:
     body, _ = get_object_stream(object_key)

@@ -1,13 +1,14 @@
-from pydantic_settings import BaseSettings
+﻿from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
 
-    STORAGE_BACKEND: str = "s3"   # "s3" or "postgres"
+    # storage: "postgres" (no-card cloud friendly) or "s3"
+    STORAGE_BACKEND: str = "postgres"
 
-    # make S3 optional so Render doesn't fail when not using it
+    # S3/MinIO optional now (only used if STORAGE_BACKEND="s3")
     S3_ENDPOINT: str = ""
     S3_ACCESS_KEY: str = ""
     S3_SECRET_KEY: str = ""
@@ -18,8 +19,15 @@ class Settings(BaseSettings):
     PAIR_TOKEN_TTL_SECONDS: int = 600
     TOKEN_HASH_SALT: str = "change-me-in-prod"
 
-    FRONTEND_QUICK_UPLOAD_BASE_URL: str = "http://localhost:8081/quick-upload"
-    FONT_CHECK_ENABLED: bool = True
+    # optional; we will auto-build joinUrl from request Origin
+    FRONTEND_QUICK_UPLOAD_BASE_URL: str = ""
+
+    # keep OFF by default so calibration not required on cloud deploy
+    FONT_CHECK_ENABLED: bool = False
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()
