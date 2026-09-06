@@ -5,10 +5,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
 
-    S3_ENDPOINT: str
-    S3_ACCESS_KEY: str
-    S3_SECRET_KEY: str
-    S3_BUCKET: str
+    STORAGE_BACKEND: str = "s3"   # "s3" or "postgres"
+
+    # make S3 optional so Render doesn't fail when not using it
+    S3_ENDPOINT: str = ""
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_KEY: str = ""
+    S3_BUCKET: str = ""
 
     CORS_ORIGINS: str = "*"
 
@@ -17,10 +20,6 @@ class Settings(BaseSettings):
 
     FRONTEND_QUICK_UPLOAD_BASE_URL: str = "http://localhost:8081/quick-upload"
     FONT_CHECK_ENABLED: bool = True
-
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
 
 
 settings = Settings()
