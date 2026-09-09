@@ -1,13 +1,7 @@
 """
 Phase B: real image preprocessing (OpenCV + Pillow).
-
-- Fixes EXIF orientation (phone photos are often stored rotated)
-- Normalises working resolution for OCR (upscale small, downscale huge)
-- Mild, NON-destructive enhancement (CLAHE + light sharpen). No thresholding:
-  binarisation destroys text on coloured packaging.
-- Real blur score (variance of Laplacian on a resolution-normalised image)
-- Keeps the scale factor so OCR bboxes can be mapped back to the image the
-  frontend displays.
+RAM-optimised for free tier (Render 512MB).
+MAX_SIDE reduced to 900px — sufficient for OCR text detection.
 """
 from __future__ import annotations
 
@@ -18,20 +12,20 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
-MAX_SIDE = 2000   # downscale images larger than this (speed, OCR detector limit)
-MIN_SIDE = 1400   # upscale images smaller than this (tiny text on small photos)
-BLUR_NORM_SIDE = 1200
+MAX_SIDE = 900    # was 2000 — OOM fix for free tier
+MIN_SIDE = 600    # was 1400 — stop upscaling (wastes RAM)
+BLUR_NORM_SIDE = 800  # was 1200
 
 
 @dataclass
 class Prepared:
-    working_bytes: bytes     # enhanced JPEG fed to OCR
-    display_width: int       # dimensions of the EXIF-corrected original (what the UI shows)
+    working_bytes: bytes
+    display_width: int
     display_height: int
     work_width: int
     work_height: int
-    scale: float             # work / display
-    blur: float              # blur score of the original (higher = sharper)
+    scale: float
+    blur: float
 
 
 def load_oriented_bgr(image_bytes: bytes) -> np.ndarray:
@@ -43,14 +37,16 @@ def load_oriented_bgr(image_bytes: bytes) -> np.ndarray:
 
 
 def blur_score_bgr(img: np.ndarray) -> float:
-    """Variance of Laplacian on an image normalised to a fixed size so the
-    score is comparable across different camera resolutions."""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape[:2]
     m = max(h, w)
     if m > BLUR_NORM_SIDE:
         s = BLUR_NORM_SIDE / m
-        gray = cv2.resize(gray, (int(w * s), int(h * s)), interpolation=cv2.INTER_AREA)
+        gray = cv2.resize(
+            gray,
+            (int(w * s), int(h * s)),
+            interpolation=cv2.INTER_AREA,
+        )
     return float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
 
@@ -59,13 +55,12 @@ def blur_score(image_bytes: bytes) -> float:
 
 
 def _enhance(img: np.ndarray) -> np.ndarray:
-    # CLAHE on lightness channel only (keeps colour, boosts local contrast)
+    """CLAHE + mild unsharp mask. No binarisation."""
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     l = clahe.apply(l)
     img = cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
-    # very light unsharp mask
     blur = cv2.GaussianBlur(img, (0, 0), 1.2)
     img = cv2.addWeighted(img, 1.25, blur, -0.25, 0)
     return img
@@ -80,15 +75,26 @@ def prepare_image(image_bytes: bytes) -> Prepared:
     scale = 1.0
     if max_side > MAX_SIDE:
         scale = MAX_SIDE / max_side
-        img = cv2.resize(img, (int(round(W * scale)), int(round(H * scale))), interpolation=cv2.INTER_AREA)
+        img = cv2.resize(
+            img,
+            (int(round(W * scale)), int(round(H * scale))),
+            interpolation=cv2.INTER_AREA,
+        )
     elif max_side < MIN_SIDE:
         scale = MIN_SIDE / max_side
-        img = cv2.resize(img, (int(round(W * scale)), int(round(H * scale))), interpolation=cv2.INTER_CUBIC)
+        img = cv2.resize(
+            img,
+            (int(round(W * scale)), int(round(H * scale))),
+            interpolation=cv2.INTER_CUBIC,
+        )
 
     img = _enhance(img)
     h, w = img.shape[:2]
 
-    ok, buf = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+    # Quality 75 (was 95) — dramatically smaller bytes, same OCR accuracy
+    ok, buf = cv2.imencode(
+        ".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 75]
+    )
     if not ok:
         raise ValueError("Failed to encode preprocessed image")
 
@@ -109,7 +115,6 @@ def preprocess_image(image_bytes: bytes) -> bytes:
 
 
 def map_bbox_to_display(bbox: dict | None, scale: float) -> dict | None:
-    """Convert a bbox from working-image pixels to display-image pixels."""
     if not bbox or not scale:
         return bbox
     return {
