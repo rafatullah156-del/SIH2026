@@ -1,14 +1,12 @@
 """
-Phase B: real OCR using PaddleOCR PP-OCRv4 models executed via ONNX Runtime
-(rapidocr-onnxruntime). Models are bundled in the wheel: no runtime download.
-
-Returns OCR blocks in the locked contract:
-  {"text": str, "bbox": {"x","y","w","h"}, "confidence": float, "poly": [[x,y]x4]}
-bbox coordinates are in pixels of the image passed in.
+Real OCR using RapidOCR (PP-OCRv4 via ONNX Runtime).
+RAM + speed optimised for free tier.
 """
 from __future__ import annotations
 
+import os
 import threading
+import time
 from typing import Any
 
 import cv2
@@ -16,14 +14,18 @@ import numpy as np
 
 from app.core.logging import logger
 
+# Thread tuning (must be set before ONNX imports)
+os.environ.setdefault("OMP_NUM_THREADS", "2")
+os.environ.setdefault("ORT_NUM_THREADS", "2")
+
 _engine = None
 _lock = threading.Lock()
+_warmed = False
 
-# Recognition score floor. We keep low-confidence text on purpose: the rule
-# engine decides how to treat uncertainty (review instead of violation).
 TEXT_SCORE = 0.30
 BOX_THRESH = 0.40
 UNCLIP_RATIO = 1.8
+OCR_THREADS = 2
 
 
 def _get_engine():
@@ -31,10 +33,28 @@ def _get_engine():
     if _engine is None:
         with _lock:
             if _engine is None:
+                t0 = time.time()
                 from rapidocr_onnxruntime import RapidOCR
                 _engine = RapidOCR()
-                logger.info("OCR engine loaded (PP-OCRv4 det+cls+rec via ONNX Runtime)")
+                logger.info(f"OCR engine loaded in {time.time() - t0:.2f}s")
     return _engine
+
+
+def warmup_ocr() -> None:
+    """Force-load the OCR engine once. Call at worker boot."""
+    global _warmed
+    if _warmed:
+        return
+    t0 = time.time()
+    _get_engine()
+    # Run a tiny dummy inference to warm ORT kernels
+    dummy = np.full((64, 256, 3), 255, dtype=np.uint8)
+    try:
+        _get_engine()(dummy, use_det=True, use_cls=True, use_rec=True)
+    except Exception:
+        pass
+    _warmed = True
+    logger.info(f"OCR warmup complete in {time.time() - t0:.2f}s")
 
 
 def _decode(image_bytes: bytes) -> np.ndarray:
@@ -49,12 +69,18 @@ def _poly_to_rect(poly) -> dict[str, int]:
     xs = [float(p[0]) for p in poly]
     ys = [float(p[1]) for p in poly]
     x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
-    return {"x": int(round(x0)), "y": int(round(y0)), "w": int(round(x1 - x0)), "h": int(round(y1 - y0))}
+    return {
+        "x": int(round(x0)), "y": int(round(y0)),
+        "w": int(round(x1 - x0)), "h": int(round(y1 - y0)),
+    }
 
 
 def run_ocr(image_bytes: bytes) -> list[dict[str, Any]]:
     img = _decode(image_bytes)
     engine = _get_engine()
+
+    h, w = img.shape[:2]
+    t0 = time.time()
 
     result, _elapse = engine(
         img,
@@ -65,6 +91,10 @@ def run_ocr(image_bytes: bytes) -> list[dict[str, Any]]:
         box_thresh=BOX_THRESH,
         unclip_ratio=UNCLIP_RATIO,
     )
+
+    elapsed = time.time() - t0
+    n = len(result) if result else 0
+    logger.info(f"OCR inference: {w}x{h}px, {n} blocks, {elapsed:.2f}s")
 
     blocks: list[dict[str, Any]] = []
     if not result:

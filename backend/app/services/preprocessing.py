@@ -1,7 +1,6 @@
 """
-Phase B: real image preprocessing (OpenCV + Pillow).
-RAM-optimised for free tier (Render 512MB).
-MAX_SIDE reduced to 900px — sufficient for OCR text detection.
+Fast + low-RAM image preprocessing.
+MAX_SIDE reduced to 640px for free-tier CPU speed.
 """
 from __future__ import annotations
 
@@ -12,9 +11,10 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
-MAX_SIDE = 900    # was 2000 — OOM fix for free tier
-MIN_SIDE = 600    # was 1400 — stop upscaling (wastes RAM)
-BLUR_NORM_SIDE = 800  # was 1200
+MAX_SIDE = 640        # was 900 — 2x faster inference
+MIN_SIDE = 480
+BLUR_NORM_SIDE = 640
+JPEG_QUALITY = 70
 
 
 @dataclass
@@ -29,7 +29,6 @@ class Prepared:
 
 
 def load_oriented_bgr(image_bytes: bytes) -> np.ndarray:
-    """Decode bytes -> BGR ndarray with EXIF orientation applied."""
     pil = Image.open(io.BytesIO(image_bytes))
     pil = ImageOps.exif_transpose(pil)
     pil = pil.convert("RGB")
@@ -42,11 +41,7 @@ def blur_score_bgr(img: np.ndarray) -> float:
     m = max(h, w)
     if m > BLUR_NORM_SIDE:
         s = BLUR_NORM_SIDE / m
-        gray = cv2.resize(
-            gray,
-            (int(w * s), int(h * s)),
-            interpolation=cv2.INTER_AREA,
-        )
+        gray = cv2.resize(gray, (int(w * s), int(h * s)), interpolation=cv2.INTER_AREA)
     return float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
 
@@ -55,15 +50,11 @@ def blur_score(image_bytes: bytes) -> float:
 
 
 def _enhance(img: np.ndarray) -> np.ndarray:
-    """CLAHE + mild unsharp mask. No binarisation."""
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     l = clahe.apply(l)
-    img = cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
-    blur = cv2.GaussianBlur(img, (0, 0), 1.2)
-    img = cv2.addWeighted(img, 1.25, blur, -0.25, 0)
-    return img
+    return cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
 
 
 def prepare_image(image_bytes: bytes) -> Prepared:
@@ -91,10 +82,7 @@ def prepare_image(image_bytes: bytes) -> Prepared:
     img = _enhance(img)
     h, w = img.shape[:2]
 
-    # Quality 75 (was 95) — dramatically smaller bytes, same OCR accuracy
-    ok, buf = cv2.imencode(
-        ".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 75]
-    )
+    ok, buf = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
     if not ok:
         raise ValueError("Failed to encode preprocessed image")
 
@@ -110,7 +98,6 @@ def prepare_image(image_bytes: bytes) -> Prepared:
 
 
 def preprocess_image(image_bytes: bytes) -> bytes:
-    """Backward-compatible helper."""
     return prepare_image(image_bytes).working_bytes
 
 
