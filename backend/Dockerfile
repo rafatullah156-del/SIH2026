@@ -24,3 +24,8 @@ COPY app ./app
 EXPOSE 8000
 COPY start_render.sh ./start_render.sh
 RUN chmod +x /code/start_render.sh
+
+# Start the API (and the Celery worker) when the container runs.
+# Without this, the image inherits python:3.11-slim's default CMD ["python3"],
+# which exits straight away, so the container starts and stops doing nothing.
+CMD ["./start_render.sh"]
