@@ -10,8 +10,55 @@ import type { UploadFile } from "../lib/types";
 
 type SubmitState = "idle" | "sending" | "success" | "error" | "invalid";
 
+const TOKEN_KEYS = ["t", "token", "uploadToken", "pairToken"] as const;
+
+function pickFirst(v: any): string {
+  if (typeof v === "string") return v;
+  if (Array.isArray(v) && typeof v[0] === "string") return v[0];
+  return "";
+}
+
+function readTokenFromWebUrl(): string {
+  if (typeof window === "undefined") return "";
+
+  // 1) Normal query: /quick-upload?t=xxx
+  try {
+    const u = new URL(window.location.href);
+    for (const k of TOKEN_KEYS) {
+      const val = u.searchParams.get(k);
+      if (val) return val;
+    }
+
+    // 2) Token in path: /quick-upload/<token>
+    const parts = u.pathname.split("/").filter(Boolean);
+    const idx = parts.indexOf("quick-upload");
+    if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
+  } catch {}
+
+  // 3) Hash routing: #/quick-upload?t=xxx  OR  #/quick-upload/<token>
+  const hash = window.location.hash || "";
+  const qIndex = hash.indexOf("?");
+  if (qIndex >= 0) {
+    const qs = hash.slice(qIndex + 1);
+    const sp = new URLSearchParams(qs);
+    for (const k of TOKEN_KEYS) {
+      const val = sp.get(k);
+      if (val) return val;
+    }
+  }
+
+  const hashPath = hash.startsWith("#") ? hash.slice(1) : hash;
+  const cleanHashPath = hashPath.split("?")[0];
+  const hp = cleanHashPath.split("/").filter(Boolean);
+  const hidx = hp.indexOf("quick-upload");
+  if (hidx >= 0 && hp[hidx + 1]) return hp[hidx + 1];
+
+  return "";
+}
+
 export default function QuickUploadScreen() {
-  const { t } = useLocalSearchParams<{ t: string | string[] }>();
+  // expo-router params (works on native + sometimes web)
+  const params = useLocalSearchParams<Record<string, any>>();
 
   const [front, setFront] = useState<UploadFile | null>(null);
   const [back, setBack] = useState<UploadFile | null>(null);
@@ -21,7 +68,13 @@ export default function QuickUploadScreen() {
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const token = typeof t === "string" ? t : Array.isArray(t) ? t[0] : "";
+  // Token: try router params first, then read from window.location (web fallback)
+  let token = "";
+  for (const k of TOKEN_KEYS) {
+    token = token || pickFirst(params?.[k]);
+  }
+  token = token || readTokenFromWebUrl();
+
   const canSend = !!front && !!back && !!token && state !== "sending";
 
   const handleSend = async () => {
@@ -66,9 +119,7 @@ export default function QuickUploadScreen() {
       <View style={styles.centerContainer}>
         <Text style={styles.invalidIcon}>⚠️</Text>
         <Text style={styles.invalidTitle}>Invalid Link</Text>
-        <Text style={styles.invalidMessage}>
-          No upload token found. Please scan the QR code again.
-        </Text>
+        <Text style={styles.invalidMessage}>No upload token found. Please scan the QR code again.</Text>
       </View>
     );
   }
@@ -101,9 +152,7 @@ export default function QuickUploadScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Quick Upload</Text>
-      <Text style={styles.subheading}>
-        Capture the label images and send them to your laptop
-      </Text>
+      <Text style={styles.subheading}>Capture the label images and send them to your laptop</Text>
 
       {errorMsg ? (
         <View style={styles.errorBox}>
@@ -115,9 +164,7 @@ export default function QuickUploadScreen() {
       <CapturePanel label="Back Image" required file={back} onChange={setBack} />
       <CapturePanel label="Calibration Image" file={calibration} onChange={setCalibration} />
 
-      {state === "sending" && (
-        <UploadProgress progress={progress} label="Sending images..." />
-      )}
+      {state === "sending" && <UploadProgress progress={progress} label="Sending images..." />}
 
       <Button
         mode="contained"
@@ -131,9 +178,7 @@ export default function QuickUploadScreen() {
         Send
       </Button>
 
-      {state === "error" && (
-        <Text style={styles.retryHint}>Fix the issue above and press Send again.</Text>
-      )}
+      {state === "error" && <Text style={styles.retryHint}>Fix the issue above and press Send again.</Text>}
     </ScrollView>
   );
 }

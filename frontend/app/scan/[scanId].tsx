@@ -83,7 +83,11 @@ export default function ScanDetailScreen() {
 
       <View style={isTablet || isDesktop ? styles.twoColumn : undefined}>
         <View style={isTablet || isDesktop ? styles.column : undefined}>
-          <FieldList fields={scan.fields || []} onFieldPress={handleViewFieldEvidence} />
+          <FieldList
+  fields={scan.fields || []}
+  scanId={scan.scanId}
+  violations={scan.violations || []}
+          />
         </View>
         <View style={isTablet || isDesktop ? styles.column : undefined}>
           <ViolationList violations={scan.violations || []} onViewEvidence={handleViewViolationEvidence} />

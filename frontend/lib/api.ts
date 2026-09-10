@@ -9,7 +9,7 @@ import type {
   UploadFile,
 } from "./types";
 
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.2:8000").replace(/\/$/, "");
 
 export const httpClient: AxiosInstance = axios.create({ baseURL: API_URL, timeout: 30000 });
 
@@ -94,6 +94,39 @@ export const api = {
   async createScan(): Promise<string> {
     const { data } = await httpClient.post<{ scanId: string }>("/scans");
     return data.scanId;
+  },
+    async fileComplaint(payload: {
+    scanId: string;
+    productName: string;
+    manufacturerName: string;
+    violationSummary: string;
+    officerName: string;
+    officerDesignation: string;
+    officerContact: string;
+    district?: string;
+    state?: string;
+    actionTaken?: string;
+    remarks?: string;
+  }): Promise<{ ok: boolean; complaintRef: string; message: string; filedAt: string }> {
+    const { data } = await httpClient.post("/complaints", {
+      scan_id: payload.scanId,
+      product_name: payload.productName,
+      manufacturer_name: payload.manufacturerName,
+      violation_summary: payload.violationSummary,
+      officer_name: payload.officerName,
+      officer_designation: payload.officerDesignation,
+      officer_contact: payload.officerContact,
+      district: payload.district || "",
+      state: payload.state || "",
+      action_taken: payload.actionTaken || "Notice Issued",
+      remarks: payload.remarks || "",
+    });
+    return {
+      ok: data.ok,
+      complaintRef: data.complaint_ref,
+      message: data.message,
+      filedAt: data.filed_at,
+    };
   },
 
   async uploadScanImage(scanId: string, panelType: PanelType, file: UploadFile): Promise<string> {
