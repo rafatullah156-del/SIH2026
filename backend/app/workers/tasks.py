@@ -165,7 +165,7 @@ def process_scan(self, scan_id: str):
         # reports
         pub_fields = [_public(f, PUBLIC_FIELD_KEYS) for f in ordered]
         pub_viol = [_public(v, PUBLIC_VIOLATION_KEYS) for v in violations]
-        pdf_bytes = generate_pdf(scan_id, pub_fields, pub_viol)
+        pdf_bytes = generate_pdf(scan_id, pub_fields, pub_viol, final_score)
         json_bytes = generate_json_report(scan_id, pub_fields, pub_viol, final_score)
 
         pdf_key = f"reports/{scan_id}.pdf"
