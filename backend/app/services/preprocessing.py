@@ -1,7 +1,8 @@
 """
-Image preprocessing optimised for Tesseract OCR.
-Higher resolution = better Tesseract accuracy (unlike neural-net OCR).
-1200px max is good balance for speed + accuracy.
+Preprocessing tuned for Tesseract accuracy on product labels.
+- Higher resolution (1400px) — small legal text needs it
+- Otsu binarization — Tesseract reads black/white far better than greyscale
+- Denoise before threshold to avoid speckle
 """
 from __future__ import annotations
 
@@ -12,15 +13,15 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
-MAX_SIDE = 1200   # Tesseract likes higher res (300dpi equivalent)
-MIN_SIDE = 800    # upscale very small images
-BLUR_NORM_SIDE = 800
-JPEG_QUALITY = 85
+MAX_SIDE = 1400        # legal text on back panel is small — needs resolution
+MIN_SIDE = 900
+BLUR_NORM_SIDE = 900
+JPEG_QUALITY = 90       # binarized image compresses well regardless
 
 
 @dataclass
 class Prepared:
-    working_bytes: bytes
+    working_bytes: bytes      # binarized image fed to OCR
     display_width: int
     display_height: int
     work_width: int
@@ -42,7 +43,7 @@ def blur_score_bgr(img: np.ndarray) -> float:
     m = max(h, w)
     if m > BLUR_NORM_SIDE:
         s = BLUR_NORM_SIDE / m
-        gray = cv2.resize(gray, (int(w*s), int(h*s)), interpolation=cv2.INTER_AREA)
+        gray = cv2.resize(gray, (int(w * s), int(h * s)), interpolation=cv2.INTER_AREA)
     return float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
 
@@ -50,19 +51,29 @@ def blur_score(image_bytes: bytes) -> float:
     return blur_score_bgr(load_oriented_bgr(image_bytes))
 
 
-def _enhance_for_tesseract(img: np.ndarray) -> np.ndarray:
+def _binarize_for_tesseract(img: np.ndarray) -> np.ndarray:
     """
-    Tesseract works best with:
-    - High contrast
-    - Clean background
-    - No excessive sharpening (causes artifacts)
+    Tesseract accuracy jumps massively on clean black/white text.
+    Pipeline: grayscale -> denoise -> CLAHE -> Otsu threshold.
     """
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-    l = clahe.apply(l)
-    img = cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
-    return img
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Denoise (removes JPEG/compression speckle that confuses Tesseract)
+    gray = cv2.fastNlMeansDenoising(gray, h=8)
+
+    # Local contrast boost before threshold
+    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    gray = clahe.apply(gray)
+
+    # Otsu binarization — auto-picks best threshold
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Slight dilate to reconnect thin broken strokes from JPEG artefacts
+    kernel = np.ones((1, 1), np.uint8)
+    binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+
+    # Convert back to 3-channel so downstream code (which expects BGR) still works
+    return cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
 
 
 def prepare_image(image_bytes: bytes) -> Prepared:
@@ -74,22 +85,25 @@ def prepare_image(image_bytes: bytes) -> Prepared:
     scale = 1.0
     if max_side > MAX_SIDE:
         scale = MAX_SIDE / max_side
-        img = cv2.resize(img,
+        img = cv2.resize(
+            img,
             (int(round(W * scale)), int(round(H * scale))),
-            interpolation=cv2.INTER_AREA)
+            interpolation=cv2.INTER_AREA,
+        )
     elif max_side < MIN_SIDE:
         scale = MIN_SIDE / max_side
-        img = cv2.resize(img,
+        img = cv2.resize(
+            img,
             (int(round(W * scale)), int(round(H * scale))),
-            interpolation=cv2.INTER_CUBIC)
+            interpolation=cv2.INTER_CUBIC,
+        )
 
-    img = _enhance_for_tesseract(img)
+    img = _binarize_for_tesseract(img)
     h, w = img.shape[:2]
 
-    ok, buf = cv2.imencode(".jpg", img,
-        [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
+    ok, buf = cv2.imencode(".png", img)  # PNG for binary images — lossless
     if not ok:
-        raise ValueError("Failed to encode image")
+        raise ValueError("Failed to encode preprocessed image")
 
     return Prepared(
         working_bytes=buf.tobytes(),
